@@ -27,17 +27,37 @@ PEP8 comply strictly.
 """
 import datetime
 
-
-class Teacher:
-    ...
-
+class Homework:
+    def __init__(self, task_text:str, num_of_days:float):
+        self.text = task_text
+        self.created = datetime.datetime.now()
+        self.deadline = self.created + datetime.timedelta(num_of_days)
+        
+    
+    def is_active(self):
+        if datetime.datetime.now() > self.deadline:
+            return False
+        return True
 
 class Student:
-    ...
+    def __init__(self, last_name:str, first_name:str):
+        self.last_name = last_name
+        self.first_name = first_name
 
+    def do_homework(self, homework:Homework):
+        if homework.is_active():
+            return homework
+        print('You are late')
+        return None
 
-class Homework:
-    ...
+class Teacher:
+    def __init__(self, last_name:str, first_name:str):
+        self.last_name = last_name
+        self.first_name = first_name
+    
+    @classmethod
+    def create_homework(cls, task_text:str, num_of_days:float):
+        return Homework(task_text,num_of_days)
 
 
 if __name__ == '__main__':

@@ -18,6 +18,16 @@ Examples:
 
 
 def read_numbers(n: int) -> str:
-    ...
+    nums = []
+    for _ in range(n):
+        inp = input('user enters: ')
+        if inp and inp.isnumeric(): # thats potential weak point, I dont know if float covers complex numbers
+            nums.append(float(inp))
+    if not nums:
+        return 'No numbers entered'
 
+    return f'Avg: {sum(nums)/len(nums)}'
+
+if __name__ == "__main__":
+    print(read_numbers(5))
 
