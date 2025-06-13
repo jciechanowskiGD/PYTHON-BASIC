@@ -23,4 +23,5 @@ def remove_duplicated_words(line: str) -> str:
             res.append(word)
     return res
 
-print(remove_duplicated_words('cat cat dog 1 dog 2'))
+
+print(remove_duplicated_words("cat cat dog 1 dog 2"))

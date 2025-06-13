@@ -13,19 +13,21 @@ Example:
 
     result.txt(content: "23, 78, 3")
 """
+
 import os
 
-def _extract_vals(directory:str):
+
+def _extract_vals(directory: str):
     files = os.listdir(directory)
     vals = []
 
     for filename in files:
-        with open(f'{directory}/{filename}') as f:
+        with open(f"{directory}/{filename}") as f:
             vals.append(f.read())
-    
+
     return vals
 
+
 if __name__ == "__main__":
-    with open('result.txt', 'w') as f:
-        f.write(','.join(_extract_vals('./files')))
-    
+    with open("result.txt", "w") as f:
+        f.write(",".join(_extract_vals("./files")))
