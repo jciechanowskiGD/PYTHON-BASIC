@@ -16,11 +16,13 @@ Examples:
 
 """
 
+def get_input(text):
+    return input(text)
 
 def read_numbers(n: int) -> str:
     nums = []
     for _ in range(n):
-        inp = input("user enters: ")
+        inp = get_input("user enters: ")
         if (
             inp and inp.isnumeric()
         ):  # thats potential weak point, I dont know if float covers complex numbers

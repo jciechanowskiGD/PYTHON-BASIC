@@ -36,7 +36,7 @@ class Homework:
         self.deadline = self.created + datetime.timedelta(num_of_days)
 
     def is_active(self):
-        if datetime.datetime.now() > self.deadline:
+        if datetime.datetime.now() >= self.deadline:
             return False
         return True
 

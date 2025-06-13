@@ -27,7 +27,10 @@ def extract_vals(directory: str):
 
     return vals
 
+def save_vals(path:str, vals:list[str]):
+    with open(path, "w") as f:
+        f.write(",".join(vals))
 
 if __name__ == "__main__":
-    with open("result.txt", "w") as f:
-        f.write(",".join(extract_vals("./files")))
+    vals = extract_vals('./files')
+    save_vals('result.txt', vals)

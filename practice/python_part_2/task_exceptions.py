@@ -33,8 +33,6 @@ def division(x: int, y: int) -> typing.Union[None, int]:
             )  # I guess "Deletion on 1 get the same result" is incorrect
         else:
             return x/y
-    except Exception as e:
-        print(e)
     finally:
         print("Division finished")
     
@@ -43,6 +41,5 @@ def division(x: int, y: int) -> typing.Union[None, int]:
 if __name__ == "__main__":
     division(1, 0)
     print()
+    print(division(2, 2))
     division(1, 1)
-    print()
-    division(2, 2)

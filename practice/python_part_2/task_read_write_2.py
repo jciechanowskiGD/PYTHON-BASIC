@@ -23,11 +23,11 @@ def generate_words(n=20):
 
     return words
 
+def save(words,files,encodings):
+    for f_encoding in zip(files,encodings):
+        with open(f_encoding[0], "w", encoding=f_encoding[1]) as f:
+            f.write("\n".join(words))
 
 if __name__ == "__main__":
     words = generate_words()
-    with open("file1.txt", "w", encoding="utf-8") as f:
-        f.write("\n".join(words))
-
-    with open("file2.txt", "w", encoding="cp1252") as f:
-        f.write(",".join(words))
+    save(words,('file1.txt','file2.txt'),('utf-8','cp1252'))
