@@ -5,12 +5,26 @@ Examples:
      >>> make_request('https://www.google.com')
      200, 'response data'
 """
+
 from typing import Tuple
+from urllib.request import urlopen
+from urllib.error import HTTPError
+
+# I get ssl problem when trying to access any website thats why I use these libraries
+import certifi
+import ssl
 
 
 def make_request(url: str) -> Tuple[int, str]:
-    ...
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
+    with urlopen(url, context=ssl_context) as response:
+        body = response.read()
+        status_code = response.status
+        return status_code, body
 
+
+if __name__ == "__main__":
+    print(make_request("https://www.google.com/")[0])
 
 """
 Write test for make_request function
@@ -24,3 +38,13 @@ Example:
     >>> m.method2()
     b'some text'
 """
+import pytest
+
+
+def test_valid_site():
+    assert make_request("https://www.google.com")[0] == 200
+
+
+def test_invalid_site():
+    with pytest.raises(HTTPError):
+        make_request("https://www.google.com/asdfdfawfwfffssfffffassssadwads")
