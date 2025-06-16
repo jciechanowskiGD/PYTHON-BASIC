@@ -67,7 +67,6 @@ def get_stock_codes_names() -> dict:
     soup = make_request("https://finance.yahoo.com/most-active")
     rows = soup.find_all("tr", class_="row yf-1570k0a")
     codes_names = {}
-    print(rows)
     for row in rows:
         symbol = row.find("span", class_="symbol yf-1jsynna")
         name = row.find(
@@ -210,22 +209,24 @@ def get_blackrock_holds(stock_codes_names: dict) -> dict:
         rows = top_institutional_holders.find_all("tr", class_="yf-idy1mk")
 
         for row in rows:
-            if row.find("td", class_="yf-idy1mk").text.rstrip() == "Blackrock Inc.":
-                data["Name"] = stock_codes_names[code]
-                data["Code"] = code
-                data["Shares"] = row.find_all("td", class_="yf-idy1mk")[1].text
-                data["Date Reported"] = row.find_all("td", class_="yf-idy1mk")[2].text
-                data["% Out"] = row.find_all("td", class_="yf-idy1mk")[3].text
-                value = int(
-                    row.find_all("td", class_="yf-idy1mk")[4].text.replace(",", "")
-                )
-                data["Value"] = value
+            if row.find("td", class_="yf-idy1mk").text.rstrip() != "Blackrock Inc.":
+                continue
 
-                if len(value_heap) < 10:
-                    heapq.heappush(value_heap, value)
-                elif value_heap[0] < value:
-                    heapq.heappushpop(value_heap, value)
-                break
+            data["Name"] = stock_codes_names[code]
+            data["Code"] = code
+            data["Shares"] = row.find_all("td", class_="yf-idy1mk")[1].text
+            data["Date Reported"] = row.find_all("td", class_="yf-idy1mk")[2].text
+            data["% Out"] = row.find_all("td", class_="yf-idy1mk")[3].text
+            value = int(
+                row.find_all("td", class_="yf-idy1mk")[4].text.replace(",", "")
+            )
+            data["Value"] = value
+
+            if len(value_heap) < 10:
+                heapq.heappush(value_heap, value)
+            elif value_heap[0] < value:
+                heapq.heappushpop(value_heap, value)
+            break
 
     indexes = []
     heap_len = len(value_heap)
@@ -255,11 +256,11 @@ def get_blackrock_holds(stock_codes_names: dict) -> dict:
 
 def create_string_with_good_format(info_to_include: dict, title: str) -> str:
     lens = [len(k) if len(k) > len(v) else len(v) for k, v in info_to_include.items()]
-    total_len = sum(lens) + 4 + (len(info_to_include) - 2) * 3
+    total_len = sum(lens) + 4 + (len(info_to_include) - 1) * 3
 
     # building string
     title_index = (total_len - len(title)) // 2
-    title_string = "=" * title_index + title + "=" * (total_len - title_index) + "\n"
+    title_string = "=" * (title_index-1) + title + "=" * (total_len - (title_index+len(title)) + 1) + "\n"
     column_names = "|"
     for length, key in zip(lens, info_to_include):
         column_names += " " + key + " " * (length - len(key)) + " |"
@@ -285,12 +286,20 @@ def create_string_with_good_format(info_to_include: dict, title: str) -> str:
 if __name__ == "__main__":
     codes_names = get_stock_codes_names()
     print(codes_names)
-    final_data = {
+    data = {
         "Name": ["tet", "test"],
         "Code": ["RTW", "AGH"],
         "Shares": ["20022", "13424"],
         "Date Reported": ["21344 mr 2222", "fkoaww"],
         "% Out": ["12%", "41%"],
-        "Value": ["122224444", "55512221"],
+        "Value": ["122", "5551"],
     }
-    print(create_string_with_good_format(final_data, "Test format"))
+    title = 'Test Title'
+    print(create_string_with_good_format(data,title))
+    # youngest_ceo = get_stocks_with_youngest_ceo(codes_names)
+    # biggest_gain = get_stocks_with_biggest_gain(codes_names)
+    # blackrock_holding = get_blackrock_holds(codes_names)
+
+    # print(create_string_with_good_format(youngest_ceo, "5 stocks with most youngest CEOs"))
+    # print(create_string_with_good_format(biggest_gain, "10 with biggest week"))
+    # print(create_string_with_good_format(blackrock_holding, "10 biggest blackrock holdings"))
