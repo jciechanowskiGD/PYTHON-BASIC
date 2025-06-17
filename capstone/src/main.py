@@ -77,7 +77,7 @@ def _generate_data_int(right_part: str) -> int:
 
     # list
     elif right_part[4] == "[" and right_part.endswith("]"):
-        ints = right_part[4:-1].replace("'", '"')
+        ints = right_part[4:].replace("'", '"')
         ints = json.loads(ints)
         try:
             ints = [int(i) for i in ints]
@@ -102,12 +102,12 @@ def _generate_data_str(right_part: str) -> str:
     if right_part.endswith("rand"):
         return str(uuid.uuid4())
     # list
+    elif right_part == "str" or right_part == "str:":
+        return ""
     elif right_part[4] == "[" and right_part.endswith("]"):
         vals = right_part[4:].replace("'", '"')
         vals = json.loads(vals)
         return random.choice(vals)
-    elif right_part.startswith("str") or right_part.startswith("str:"):
-        return ""
     else:
         return right_part[4:]
 
@@ -125,10 +125,13 @@ def generate_data_line(data_schema: dict[str, str]) -> dict:
 
     for k in data_schema:
         if data_schema[k].startswith("int"):
+            print(data_schema[k])
             data[k] = _generate_data_int(data_schema[k])
         elif data_schema[k].startswith("timestamp"):
+            print(data_schema[k])
             data[k] = _generate_data_timestamp(data_schema[k])
         elif data_schema[k].startswith("str"):
+            print(data_schema[k])
             logger.info(f"data_schema[k]")
             data[k] = _generate_data_str(data_schema[k])
         else:
