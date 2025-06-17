@@ -161,6 +161,9 @@ def generate_data(
     file_name: str,
     file_prefix: str,
 ):
+    if max_workers <= 0:
+        logger.error("We can use <= 0 cores")
+        exit()
     file_paths = generate_file_paths(
         path_to_save_files, file_name, file_prefix, file_count
     )
