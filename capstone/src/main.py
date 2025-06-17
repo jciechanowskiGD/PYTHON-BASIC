@@ -23,7 +23,7 @@ def clear_path(path_to_save_files: str, file_name: str, clear_path: bool) -> Non
     logger.info("Deleted files that match base file_name")
 
 
-def generate_file_paths(
+def _generate_file_paths(
     path_to_save_file: str, file_name: str, file_prefix: str, file_count: int
 ) -> list:
     if file_count < 0:
@@ -48,7 +48,7 @@ def generate_file_paths(
     exit()
 
 
-def save_to_file(file_path: str, data: str) -> None:
+def _save_to_file(file_path: str, data: str) -> None:
     with open(f"{file_path}.json", "w") as f:
         json.dump(data, f)
     logger.info(f"Saved to file {file_path}.json")
@@ -125,13 +125,10 @@ def generate_data_line(data_schema: dict[str, str]) -> dict:
 
     for k in data_schema:
         if data_schema[k].startswith("int"):
-            print(data_schema[k])
             data[k] = _generate_data_int(data_schema[k])
         elif data_schema[k].startswith("timestamp"):
-            print(data_schema[k])
             data[k] = _generate_data_timestamp(data_schema[k])
         elif data_schema[k].startswith("str"):
-            print(data_schema[k])
             logger.info(f"data_schema[k]")
             data[k] = _generate_data_str(data_schema[k])
         else:
@@ -141,7 +138,7 @@ def generate_data_line(data_schema: dict[str, str]) -> dict:
     return data
 
 
-def create_file_content(data_schema: dict, data_lines: int):
+def _create_file_content(data_schema: dict, data_lines: int):
     all_lines = []
     for _ in range(data_lines):
         data_line = generate_data_line(data_schema)
@@ -150,9 +147,9 @@ def create_file_content(data_schema: dict, data_lines: int):
     return data
 
 
-def file_generation_helper(data_schema: dict, data_lines: int, file_path: str):
-    data = create_file_content(data_schema, data_lines)
-    save_to_file(file_path, data)
+def _file_generation_helper(data_schema: dict, data_lines: int, file_path: str):
+    data = _create_file_content(data_schema, data_lines)
+    _save_to_file(file_path, data)
 
 
 def generate_data(
@@ -167,20 +164,19 @@ def generate_data(
     if max_workers <= 0:
         logger.error("We can use <= 0 cores")
         exit()
-    file_paths = generate_file_paths(
+    file_paths = _generate_file_paths(
         path_to_save_files, file_name, file_prefix, file_count
     )
     params = [(data_schema, data_lines, file_path) for file_path in file_paths]
     logger.info("Data generating...")
     if len(file_paths) == 0:
-        print(create_file_content(data_schema, data_lines))
         return
 
     if max_workers > os.cpu_count():
         max_workers = os.cpu_count()
 
     with Pool(processes=max_workers) as pool:
-        pool.starmap(file_generation_helper, params)
+        pool.starmap(_file_generation_helper, params)
     logger.info("Data generated")
 
 
