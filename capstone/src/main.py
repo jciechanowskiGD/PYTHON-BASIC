@@ -69,8 +69,8 @@ def _generate_data_int(right_part: str) -> int:
         try:
             i1, i2 = int(ints[0]), int(ints[1])
             return random.randint(i1, i2)
-        except Exception as e:
-            logger.error("Exception when trying to convert to int")
+        except Exception:
+            logger.error("Error when trying to convert to int")
             exit()
 
     # empty
@@ -80,11 +80,11 @@ def _generate_data_int(right_part: str) -> int:
     # list
     elif right_part[4] == "[" and right_part.endswith("]"):
         ints = right_part[4:].replace("'", '"')
-        ints = json.loads(ints)
         try:
+            ints = json.loads(ints)
             ints = [int(i) for i in ints]
             return random.choice(ints)
-        except Exception as e:
+        except Exception:
             logger.error("Not all values are int")
             exit()
 
@@ -93,7 +93,7 @@ def _generate_data_int(right_part: str) -> int:
         try:
             i = int(right_part[4:].strip())
             return i
-        except Exception as e:
+        except Exception:
             logger.error("Invalid value after int:")
             exit()
 
@@ -108,8 +108,12 @@ def _generate_data_str(right_part: str) -> str:
         return ""
     elif right_part[4] == "[" and right_part.endswith("]"):
         vals = right_part[4:].replace("'", '"')
-        vals = json.loads(vals)
-        return random.choice(vals)
+        try:
+            vals = json.loads(vals)
+            return random.choice(vals)
+        except Exception:
+            logger.error("Error in data schema")
+            exit()
     else:
         return right_part[4:]
 
@@ -261,7 +265,6 @@ def parser_init() -> argparse.ArgumentParser:
     return parser
 
 
-# prefix is still todo
 def main():
 
     parser = parser_init()
