@@ -8,6 +8,12 @@ import os
 from multiprocessing import Pool
 import json
 
+logging.basicConfig(
+    level=logging.INFO, 
+    handlers=[
+        logging.FileHandler("debug.log"),
+        logging.StreamHandler()
+    ])
 logger = logging.getLogger(__name__)
 
 
@@ -16,7 +22,6 @@ def clear_path(path_to_save_files: str, file_name: str, clear_path: bool) -> Non
         return
 
     files = os.listdir(path_to_save_files)
-    logger.info("Begining deletion of files that match base file_name")
     for file in files:
         if file.startswith(file_name):
             os.remove(f"{path_to_save_files}/{file}")
@@ -29,16 +34,13 @@ def _generate_file_paths(
     if file_count < 0:
         logger.error("Files count cant be less than 0")
         exit()
-    elif file_count == 0:
-        return []
-    elif file_count == 1:
-        return [f"{path_to_save_file}/{file_name}"]
     if file_prefix == "count":
-        return [f"{path_to_save_file}/{file_name}{i}" for i in range(file_count)]
+        return [
+            f"{path_to_save_file}/{file_name}{i}" for i in range(file_count)
+        ]
     elif file_prefix == "random":
         return [
-            f"{path_to_save_file}/{file_name}{random.randint(1, 10000000)}"
-            for _ in range(file_count)
+            f"{path_to_save_file}/{file_name}{random.randint(1, 10000000)}" for _ in range(file_count)
         ]
     elif file_prefix == "uuid":
         return [
@@ -51,11 +53,11 @@ def _generate_file_paths(
 def _save_to_file(file_path: str, data: str) -> None:
     with open(f"{file_path}.json", "w") as f:
         json.dump(data, f)
-    logger.info(f"Saved to file {file_path}.json")
+    logger.debug(f"Saved to file {file_path}.json")
 
 
 def _generate_data_int(right_part: str) -> int:
-    logger.info("Generating data for int")
+    logger.debug("Generating data for int")
     # rand empty
     if right_part.endswith("rand"):
         return random.randint(0, 10000)
@@ -97,7 +99,7 @@ def _generate_data_int(right_part: str) -> int:
 
 
 def _generate_data_str(right_part: str) -> str:
-    logger.info("Generating data for string")
+    logger.debug("Generating data for string")
     # rand
     if right_part.endswith("rand"):
         return str(uuid.uuid4())
@@ -113,6 +115,7 @@ def _generate_data_str(right_part: str) -> str:
 
 
 def _generate_data_timestamp(right_part: str, already_warned=[]) -> float:
+    logger.debug("Generating data for string")
     if len(right_part) > 10 and not already_warned:
         already_warned.append(1)
         logger.warning('In time stamp values after ":" will be ignored')
@@ -129,7 +132,6 @@ def generate_data_line(data_schema: dict[str, str]) -> dict:
         elif data_schema[k].startswith("timestamp"):
             data[k] = _generate_data_timestamp(data_schema[k])
         elif data_schema[k].startswith("str"):
-            logger.info(f"data_schema[k]")
             data[k] = _generate_data_str(data_schema[k])
         else:
             logger.error(f"Type not supported {data_schema[k]}")
@@ -168,8 +170,9 @@ def generate_data(
         path_to_save_files, file_name, file_prefix, file_count
     )
     params = [(data_schema, data_lines, file_path) for file_path in file_paths]
-    logger.info("Data generating...")
+
     if len(file_paths) == 0:
+        print(_create_file_content(data_schema, data_lines))
         return
 
     if max_workers > os.cpu_count():
@@ -184,14 +187,17 @@ def read_schema(path_or_schema: str) -> dict:
     if os.path.isfile(path_or_schema):
         try:
             with open(path_or_schema, "r") as f:
-                schema = json.load(f)
-                return schema
+                schema = f.read()
+                logger.info("Schema read from file")
+                return json.loads(schema)
         except Exception:
             logger.error("Error while reading schema from file")
             exit()
+
     else:
         try:
             schema = json.loads(path_or_schema)
+            logger.info("Schema read from cli")
             return schema
         except Exception:
             logger.error("Error while reading schema from input")
@@ -257,6 +263,7 @@ def parser_init() -> argparse.ArgumentParser:
 
 # prefix is still todo
 def main():
+
     parser = parser_init()
     args = parser.parse_args()
 
@@ -266,9 +273,13 @@ def main():
     if not os.path.exists(args.path_to_save_files):
         os.mkdir(args.path_to_save_files)
 
+    logger.info("Clearing path...")
     clear_path(args.path_to_save_files, args.file_name, args.clear_path)
+    
+    logger.info("Reading schema...")
     schema = read_schema(args.data_schema)
 
+    logger.info("Generating data...")
     generate_data(
         schema,
         args.data_lines,

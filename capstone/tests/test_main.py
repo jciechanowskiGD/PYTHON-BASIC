@@ -1,9 +1,10 @@
 import pytest
-from src.main import _generate_data_int, _generate_data_str, _generate_data_timestamp, generate_data_line, clear_path, _save_to_file
+from src.main import _generate_data_int, _generate_data_str, _generate_data_timestamp, generate_data_line, clear_path, _save_to_file, read_schema, _generate_file_paths
 from unittest.mock import patch
 import time
 import os
 import subprocess
+import json
 
 # TESTS for data types
 
@@ -60,8 +61,15 @@ schemas = [
 def test_schemas(mocked, x, exp):
     assert generate_data_line(x) == exp
 
-# TESTS for temporary_data_schema TODO
+# TESTS for schema_from_file 
 
+def test_schema_from_file(tmp_path):
+    file_name = 'schema.json'
+    path = tmp_path / file_name
+    schema = '{"name": "str:lala","num": "int:10"}'
+    path.write_text(schema)
+    assert read_schema(path) == {"name": "str:lala", "num":"int:10"}
+    
 
 # TESTS for clear_path
 
@@ -96,4 +104,13 @@ def test_file_count(tmp_path):
                     '--clear_path'])
     assert len(os.listdir(tmp_path)) == 12
 
-# TESTS for to check a number of created files if “multiprocessing” > 1
+# My own test
+@patch("uuid.uuid4", side_effect=["3a9829d9-caf8-4313-ae9a-03273288f3ec", "14b4f416-fa6e-4a03-aef4-b0fd1364cefd"])
+@patch("random.randint", side_effect=["99", "1112"])
+def test_file_paths(mock, mock2, tmp_path):
+    base_file_name = 'file'
+    assert _generate_file_paths(tmp_path, base_file_name, 'uuid', 2) == [f'{tmp_path}/{base_file_name}3a9829d9-caf8-4313-ae9a-03273288f3ec', f'{tmp_path}/{base_file_name}14b4f416-fa6e-4a03-aef4-b0fd1364cefd']
+
+    assert _generate_file_paths(tmp_path, base_file_name, 'count', 2) == [f'{tmp_path}/{base_file_name}0', f'{tmp_path}/{base_file_name}1']
+
+    assert _generate_file_paths(tmp_path, base_file_name, 'random', 2) == [f'{tmp_path}/{base_file_name}99', f'{tmp_path}/{base_file_name}1112']
