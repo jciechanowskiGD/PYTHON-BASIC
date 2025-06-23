@@ -1,10 +1,9 @@
 import pytest
-from src.main import _generate_data_int, _generate_data_str, _generate_data_timestamp, generate_data_line, clear_path, _save_to_file, read_schema, _generate_file_paths
+from src import generator, utils
 from unittest.mock import patch
 import time
 import os
 import subprocess
-import json
 
 # TESTS for data types
 
@@ -18,7 +17,8 @@ paramets_int = [
 
 @pytest.mark.parametrize("x, exp", paramets_int)
 def test_type_int(x, exp):
-    assert _generate_data_int(x) in exp
+    gen = generator.DataGenerator()
+    assert gen._generate_data_int(x) in exp
 
 
 paramets_str = [
@@ -31,7 +31,8 @@ paramets_str = [
 @pytest.mark.parametrize("x, exp", paramets_str)
 @patch("uuid.uuid4", return_value="3a9829d9-caf8-4313-ae9a-03273288f3ec")
 def test_type_str(mocked, x, exp):
-    assert _generate_data_str(x) in exp
+    gen = generator.DataGenerator()
+    assert gen._generate_data_str(x) in exp
 
 
 t = time.time()
@@ -45,7 +46,8 @@ paramets_str = [
 @pytest.mark.parametrize("x, exp", paramets_str)
 @patch("time.time", return_value=t)
 def test_type_timestamp(mocked, x, exp):
-    assert _generate_data_timestamp(x) == exp
+    gen = generator.DataGenerator()
+    assert gen._generate_data_timestamp(x) == exp
 
 # TESTS for data schemas
 
@@ -59,7 +61,8 @@ schemas = [
 @pytest.mark.parametrize("x, exp", schemas)
 @patch("time.time", return_value=t)
 def test_schemas(mocked, x, exp):
-    assert generate_data_line(x) == exp
+    gen = generator.DataGenerator()
+    assert gen.generate_data_line(x) == exp
 
 # TESTS for schema_from_file 
 
@@ -68,7 +71,7 @@ def test_schema_from_file(tmp_path):
     path = tmp_path / file_name
     schema = '{"name": "str:lala","num": "int:10"}'
     path.write_text(schema)
-    assert read_schema(path) == {"name": "str:lala", "num":"int:10"}
+    assert utils.read_schema(path) == {"name": "str:lala", "num":"int:10"}
     
 
 # TESTS for clear_path
@@ -79,7 +82,7 @@ def test_clear_path(tmp_path):
     path.write_text("1")
     assert len(os.listdir(tmp_path)) > 0
     base_file_name = 'file'
-    clear_path(tmp_path,base_file_name,True)
+    utils.clear_path(tmp_path,base_file_name,True)
     assert len(os.listdir(tmp_path)) == 0
 
 # TESTS for file creation
@@ -87,7 +90,8 @@ def test_clear_path(tmp_path):
 def file_saving(tmp_path):
     data = "{\"date\": 1750195416.063435, \"name\": \"bfd14841-49fa-4ce8-9444-4fa0cca49bbb\", \"type\": \"partner\", \"age\": 565}"
     path = tmp_path/'file1.json'
-    _save_to_file(path,data)
+    gen = generator.DataGenerator()
+    gen._save_to_file(path,data)
     assert os.path.exists(path)
     with open(path, 'r') as f:
         assert f.read() == "{\"date\": 1750195416.063435, \"name\": \"bfd14841-49fa-4ce8-9444-4fa0cca49bbb\", \"type\": \"partner\", \"age\": 565}"
@@ -95,8 +99,10 @@ def file_saving(tmp_path):
 # TESTS for to check a number of created files if “multiprocessing” > 1
 
 def test_file_count(tmp_path):
+    script_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/src/main.py"
+    print(script_path)
     subprocess.run(['python3', 
-                    'src/main.py', 
+                    script_path, 
                     tmp_path, 
                     '--file_count=12', 
                     '--multiprocessing=4', 
@@ -109,8 +115,9 @@ def test_file_count(tmp_path):
 @patch("random.randint", side_effect=["99", "1112"])
 def test_file_paths(mock, mock2, tmp_path):
     base_file_name = 'file'
-    assert _generate_file_paths(tmp_path, base_file_name, 'uuid', 2) == [f'{tmp_path}/{base_file_name}3a9829d9-caf8-4313-ae9a-03273288f3ec', f'{tmp_path}/{base_file_name}14b4f416-fa6e-4a03-aef4-b0fd1364cefd']
+    gen = generator.DataGenerator()
+    assert gen._generate_file_paths(tmp_path, base_file_name, 'uuid', 2) == [f'{tmp_path}/{base_file_name}3a9829d9-caf8-4313-ae9a-03273288f3ec', f'{tmp_path}/{base_file_name}14b4f416-fa6e-4a03-aef4-b0fd1364cefd']
 
-    assert _generate_file_paths(tmp_path, base_file_name, 'count', 2) == [f'{tmp_path}/{base_file_name}0', f'{tmp_path}/{base_file_name}1']
+    assert gen._generate_file_paths(tmp_path, base_file_name, 'count', 2) == [f'{tmp_path}/{base_file_name}0', f'{tmp_path}/{base_file_name}1']
 
-    assert _generate_file_paths(tmp_path, base_file_name, 'random', 2) == [f'{tmp_path}/{base_file_name}99', f'{tmp_path}/{base_file_name}1112']
+    assert gen._generate_file_paths(tmp_path, base_file_name, 'random', 2) == [f'{tmp_path}/{base_file_name}99', f'{tmp_path}/{base_file_name}1112']
