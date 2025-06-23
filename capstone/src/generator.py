@@ -25,8 +25,20 @@ class DataGenerator():
             logger.error("Files count cant be less than 0")
             exit()
         if file_prefix == "count":
+            files = os.listdir(path_to_save_file)
+            biggest = -1
+            for file in files:
+                if not file.startswith(file_name):
+                    continue
+                num = file[len(file_name):].split('.')[0]
+                try:
+                    num = int(num)
+                    biggest = max(num,biggest)
+                except Exception as e:
+                    logger.info('Misleading files in output dir')
+
             return [
-                f"{path_to_save_file}/{file_name}{i}" for i in range(file_count)
+                f"{path_to_save_file}/{file_name}{i}" for i in range(biggest+1,file_count+biggest+1)
             ]
         elif file_prefix == "random":
             return [
