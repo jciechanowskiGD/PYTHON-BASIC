@@ -1,3 +1,6 @@
+import sys
+sys.path.append('.')
+
 import pytest
 from src import generator, utils
 from unittest.mock import patch
